@@ -99,25 +99,20 @@
       // Use repo-specific localStorage key to prevent conflicts
       const CONSENT_KEY = 'trading-analytics-consent';
       const GA_MEASUREMENT_ID = 'G-YQYWNB1WK2';
-      const OTHER_MEASUREMENT_ID = 'DY4TBEES4D';  // Chess engine ID to block
       
-      // ULTRA-AGGRESSIVE cookie cleanup - remove ALL non-trading cookies AND wrong measurement ID
+      // Cookie cleanup - remove foreign/unprefixed GA cookies
       function clearAllForeignCookies() {
         const allCookies = document.cookie.split(';');
         const domains = ['.github.io', '.cracked-crystalball-99.github.io', 'cracked-crystalball-99.github.io', location.hostname, ''];
-        const paths = ['/', '/chess-engine/', '/trading-analysis/', '/trading-analysis-master/', ''];
+        const paths = ['/', '/trading-analysis/', ''];
         
         allCookies.forEach(cookie => {
           const cookieName = cookie.split('=')[0].trim();
-          // Remove ANY cookie that:
-          // 1. Contains the wrong measurement ID (DY4TBEES4D)
-          // 2. Has chess_ prefix
-          // 3. Is a GA cookie without trading_ prefix
-          const isWrongMeasurementId = cookieName.includes(OTHER_MEASUREMENT_ID);
-          const isChessCookie = cookieName.startsWith('chess_');
+          // Remove cookies that are not trading-prefixed GA cookies
           const isUnprefixedGA = cookieName.startsWith('_ga') && !cookieName.startsWith('trading_');
+          const isForeignPrefixed = cookieName.startsWith('chess_');
           
-          if (isWrongMeasurementId || isChessCookie || isUnprefixedGA) {
+          if (isUnprefixedGA || isForeignPrefixed) {
             domains.forEach(domain => {
               paths.forEach(path => {
                 const domainStr = domain ? '; domain=' + domain : '';
