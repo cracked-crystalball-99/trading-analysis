@@ -219,6 +219,78 @@
       }
     })();
   </script>
+
+  <!-- ═══ Sporting Color Picker: Theme Loader ═══ -->
+  <!-- Reads team theme from localStorage and applies CSS overrides dynamically. -->
+  <!-- PROTECTED: .green-cell (#28a745) and .red-cell (#dc3545) are NEVER overridden. -->
+  <script>
+    (function loadTeamTheme() {
+      'use strict';
+      var saved = localStorage.getItem('trading-team-theme');
+      if (!saved) {
+        console.log('%c🎨 No team theme set. Visit sporting-color-picker.html to customise.', 'color:#8b949e');
+        return;
+      }
+      try {
+        var theme = JSON.parse(saved);
+        var p = theme.primary;
+        var s = theme.secondary;
+        var a = theme.accent;
+        if (!p) return;
+
+        // Developer console guidance
+        console.log('%c🎨 Team theme active: ' + theme.city + ' (' + theme.league + ')', 'color:#58a6ff;font-weight:bold');
+        console.log('%c   Primary (headings/th/buttons): ' + p, 'color:' + p + ';font-weight:bold');
+        console.log('%c   Secondary (hover states):      ' + s, 'color:' + s + ';font-weight:bold');
+        console.log('%c   Accent (nav buttons):           ' + a, 'color:' + a + ';font-weight:bold');
+        console.log('%c   To reset: localStorage.removeItem("trading-team-theme") then refresh', 'color:#f0883e');
+        console.log('%c   🛡️ Protected: #28a745 (green cells) and #dc3545 (red cells) are unchanged.', 'color:#3fb950');
+
+        function dk(hex, pct) {
+          var h = hex.replace('#','');
+          var r = Math.max(0, Math.round(parseInt(h.substring(0,2),16) * (1 - pct/100)));
+          var g = Math.max(0, Math.round(parseInt(h.substring(2,4),16) * (1 - pct/100)));
+          var b = Math.max(0, Math.round(parseInt(h.substring(4,6),16) * (1 - pct/100)));
+          return '#' + [r,g,b].map(function(v){ return v.toString(16).padStart(2,'0'); }).join('');
+        }
+
+        function toRgba(hex, alpha) {
+          var h = hex.replace('#','');
+          return 'rgba(' + parseInt(h.substring(0,2),16) + ',' + parseInt(h.substring(2,4),16) + ',' + parseInt(h.substring(4,6),16) + ',' + alpha + ')';
+        }
+
+        var css = [
+          '/* Team Theme Override: ' + theme.city + ' (' + theme.league + ') */',
+          'h1 { color: ' + p + ' !important; }',
+          'h2 { color: ' + p + ' !important; }',
+          'th { background-color: ' + p + ' !important; }',
+          '.scrollable thead th { background-color: ' + p + ' !important; }',
+          '.section button { background-color: ' + p + ' !important; }',
+          '.full-width-button { background-color: ' + p + ' !important; }',
+          '.date-picker button, .ticker-search button { background-color: ' + p + ' !important; }',
+          '.pre-select { background-color: ' + p + ' !important; }',
+          '.loading-content { background-color: ' + toRgba(p, 0.95) + ' !important; }',
+          '.section button:hover { background-color: ' + s + ' !important; }',
+          '.full-width-button:hover { background-color: ' + s + ' !important; }',
+          '.date-picker button:hover, .ticker-search button:hover { background-color: ' + s + ' !important; }',
+          '.pre-select:hover { background-color: ' + s + ' !important; }',
+          '.back-to-tools-btn { background-color: ' + a + ' !important; }',
+          '.back-to-tools-btn:hover { background-color: ' + dk(a, 20) + ' !important; }',
+          '.tooltip.has-chart::after { color: ' + a + ' !important; border-color: ' + a + ' !important; }',
+          '.return-to-tool-btn { background-color: ' + dk(a, 10) + ' !important; }',
+          '.return-to-tool-btn:hover { background-color: ' + dk(a, 25) + ' !important; }',
+        ].join('\n');
+
+        var style = document.createElement('style');
+        style.id = 'team-theme-override';
+        style.textContent = css;
+        document.head.appendChild(style);
+
+      } catch(e) {
+        console.warn('🎨 Failed to load team theme:', e);
+      }
+    })();
+  </script>
 </head>
 <body>
     <div class="main-container">
@@ -260,6 +332,41 @@
             </div>
         </div>
     </div>
+
+    <!-- ═══ Sporting Color Picker Promo Banner ═══ -->
+    <div id="colorPickerBanner" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); border: 2px solid #58a6ff; border-radius: 12px; padding: 20px; margin: 20px auto; text-align: center; box-shadow: 0 4px 15px rgba(88,166,255,0.15);">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 15px; flex-wrap: wrap;">
+            <span style="font-size: 36px;">🎨</span>
+            <div style="text-align: left;">
+                <h3 style="margin: 0 0 8px 0; color: #58a6ff; font-size: 18px;">🏈 Customise with Your Team Colours!</h3>
+                <p style="margin: 0; font-size: 14px; line-height: 1.5; color: #b0c4de;">
+                    Restyle this tool with colours from your favourite <strong style="color:#fff;">NFL, NBA, MLB, NHL</strong> or <strong style="color:#fff;">European Soccer</strong> team.<br>
+                    Signal greens &amp; reds stay protected &mdash; only UI theme colours change.
+                </p>
+            </div>
+        </div>
+        <div style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin-top: 18px;">
+            <a href="sporting-color-picker.html" 
+               style="background: #58a6ff; color: #000; padding: 12px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 15px; transition: background 0.3s; display: inline-block;">
+                🎨 Open Color Picker
+            </a>
+            <span id="activeThemeLabel" style="color: #8b949e; font-size: 13px; align-self: center;"></span>
+        </div>
+    </div>
+    <script>
+      (function() {
+        var saved = localStorage.getItem('trading-team-theme');
+        var label = document.getElementById('activeThemeLabel');
+        if (saved && label) {
+          try {
+            var t = JSON.parse(saved);
+            label.innerHTML = '\u2705 Active theme: <strong style="color:#58a6ff">' + t.city + '</strong> (' + t.league + ')';
+          } catch(e) {}
+        } else if (label) {
+          label.textContent = 'No theme active \u2014 using default purple & gold';
+        }
+      })();
+    </script>
 
     <!-- Form to load CSV file -->
     <form id="csvForm">

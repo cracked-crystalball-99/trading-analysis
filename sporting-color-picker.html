@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sporting Color Picker — Customise Your Trading Tool</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+  :root{
+    --bg:#0e1117;--surface:#161b22;--surface2:#1c2333;
+    --border:#30363d;--text:#e6edf3;--text-muted:#8b949e;
+    --accent:#58a6ff;--accent-hover:#79c0ff;
+    --radius:8px;--transition:0.2s ease;
+  }
+
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,sans-serif;
+    background:var(--bg);color:var(--text);line-height:1.6;
+    min-height:100vh;padding:1rem;
+  }
+
+  header{text-align:center;padding:2rem 0 1rem}
+  header h1{font-size:2rem;letter-spacing:-.5px}
+  header p{color:var(--text-muted);margin-top:.35rem;font-size:.95rem}
+
+  /* ── Back-to-app link ── */
+  .back-link{
+    display:inline-flex;align-items:center;gap:.4rem;
+    color:var(--accent);text-decoration:none;font-size:.9rem;
+    margin-bottom:1rem;padding:.4rem .8rem;border:1px solid var(--border);
+    border-radius:var(--radius);transition:all var(--transition);
+  }
+  .back-link:hover{background:var(--surface);border-color:var(--accent)}
+
+  /* ── Live preview banner ── */
+  .live-preview{
+    background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+    padding:1rem 1.25rem;margin-bottom:1.5rem;
+  }
+  .live-preview h3{font-size:.95rem;color:var(--accent);margin-bottom:.75rem}
+  .preview-row{display:flex;flex-wrap:wrap;gap:.75rem;align-items:center}
+  .preview-block{
+    border-radius:6px;padding:.6rem 1rem;font-size:.82rem;font-weight:600;
+    transition:all .3s ease;min-width:120px;text-align:center;
+  }
+  .preview-heading{font-size:1.1rem;font-weight:700;margin-right:.5rem;transition:color .3s}
+  .preview-th{color:#fff;font-size:.82rem}
+  .preview-btn-hover{font-size:.82rem;color:#000}
+  .preview-nav{font-size:.82rem;color:#fff}
+  .preview-return{font-size:.82rem;color:#fff}
+  .preview-note{color:var(--text-muted);font-size:.8rem;margin-top:.75rem}
+  .preview-note code{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:.78rem}
+
+  /* ── Protected colours info ── */
+  .protected-info{
+    background:#1a1208;border:1px solid #5c4a1e;border-radius:var(--radius);
+    padding:.85rem 1.1rem;margin-bottom:1.5rem;font-size:.85rem;
+    display:flex;align-items:flex-start;gap:.75rem;
+  }
+  .protected-info .icon{font-size:1.4rem;flex-shrink:0}
+  .protected-swatch{
+    display:inline-block;width:16px;height:16px;border-radius:3px;
+    vertical-align:middle;margin:0 3px;border:1px solid rgba(255,255,255,.15);
+  }
+
+  .app{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 340px;gap:1.5rem}
+
+  /* ── League columns ── */
+  .leagues{display:flex;flex-direction:column;gap:1.25rem}
+
+  .league-section{
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:var(--radius);padding:1rem 1.25rem;
+  }
+  .league-section h2{
+    font-size:1.05rem;text-transform:uppercase;letter-spacing:1px;
+    color:var(--accent);margin-bottom:.75rem;
+    border-bottom:1px solid var(--border);padding-bottom:.5rem;
+  }
+  .city-grid{display:flex;flex-wrap:wrap;gap:.45rem}
+
+  .city-btn{
+    background:var(--surface2);border:1px solid var(--border);
+    color:var(--text);padding:.35rem .75rem;border-radius:5px;
+    cursor:pointer;font-size:.82rem;transition:background var(--transition),
+    border-color var(--transition),transform var(--transition);
+    user-select:none;
+  }
+  .city-btn:hover{background:#263040;border-color:var(--accent);transform:translateY(-1px)}
+  .city-btn.active{
+    background:var(--accent);color:#000;font-weight:600;
+    border-color:var(--accent);
+  }
+  /* colour dots preview on city buttons */
+  .city-dots{display:inline-flex;gap:2px;margin-left:5px;vertical-align:middle}
+  .city-dot{width:8px;height:8px;border-radius:50%;display:inline-block;border:1px solid rgba(255,255,255,.2)}
+
+  /* ── Palette sidebar ── */
+  .palette-panel{
+    position:sticky;top:1rem;align-self:start;
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:var(--radius);padding:1.25rem;min-height:200px;
+  }
+  .palette-panel h2{
+    font-size:1.05rem;text-transform:uppercase;letter-spacing:1px;
+    color:var(--accent);margin-bottom:.75rem;
+    border-bottom:1px solid var(--border);padding-bottom:.5rem;
+  }
+
+  .palette-empty{color:var(--text-muted);font-size:.9rem;text-align:center;padding:2rem 0}
+
+  .selected-label{
+    font-size:.95rem;font-weight:600;margin-bottom:1rem;
+    text-align:center;
+  }
+
+  .swatch-list{display:flex;flex-direction:column;gap:.75rem}
+
+  .swatch{
+    display:flex;align-items:center;gap:.75rem;
+    border-radius:var(--radius);overflow:hidden;
+    border:1px solid var(--border);background:var(--surface2);
+  }
+  .swatch-color{
+    width:72px;height:72px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .swatch-info{flex:1;padding:.5rem .75rem .5rem 0}
+  .swatch-hex{font-family:'Consolas','Courier New',monospace;font-size:1rem;font-weight:600}
+  .swatch-rgb{font-size:.78rem;color:var(--text-muted);margin-top:.15rem}
+  .swatch-mapping{font-size:.75rem;color:#d2a8ff;margin-top:.25rem;font-style:italic}
+
+  .copy-btn{
+    background:var(--surface);border:1px solid var(--border);
+    color:var(--text-muted);padding:.25rem .6rem;border-radius:4px;
+    cursor:pointer;font-size:.75rem;margin-top:.35rem;
+    transition:background var(--transition),color var(--transition);
+  }
+  .copy-btn:hover{background:var(--accent);color:#000}
+  .copy-btn.copied{background:#238636;color:#fff;border-color:#238636}
+
+  /* ── Preview strip ── */
+  .preview-strip{
+    display:flex;height:32px;border-radius:5px;overflow:hidden;
+    margin-top:.5rem;border:1px solid var(--border);
+  }
+  .preview-strip div{flex:1;transition:background var(--transition)}
+
+  /* ── Apply section ── */
+  .apply-section{
+    margin-top:1.25rem;padding-top:1rem;border-top:1px solid var(--border);
+    display:flex;flex-direction:column;gap:.5rem;
+  }
+  .apply-btn{
+    background:var(--accent);color:#000;font-weight:600;
+    border:none;padding:.65rem;border-radius:5px;cursor:pointer;
+    font-size:.88rem;transition:background var(--transition);
+  }
+  .apply-btn:hover{background:var(--accent-hover)}
+  .apply-btn:disabled{opacity:.4;cursor:not-allowed}
+  .apply-btn.applied{background:#238636;color:#fff}
+
+  .reset-btn{
+    background:transparent;border:1px solid var(--border);
+    color:var(--text-muted);padding:.45rem;border-radius:5px;
+    cursor:pointer;font-size:.82rem;transition:all var(--transition);
+  }
+  .reset-btn:hover{border-color:#da3633;color:#da3633}
+
+  .copy-css-btn{
+    background:#30363d;color:var(--text);font-weight:500;
+    border:1px solid var(--border);padding:.55rem;border-radius:5px;
+    cursor:pointer;font-size:.82rem;transition:all var(--transition);
+  }
+  .copy-css-btn:hover{background:#3d444d;border-color:var(--accent)}
+  .copy-css-btn.copied{background:#238636;color:#fff;border-color:#238636}
+
+  /* ── Responsive ── */
+  @media(max-width:820px){
+    .app{grid-template-columns:1fr}
+    .palette-panel{position:static;order:-1}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="index.html" class="back-link">&larr; Back to Trading Analysis Tool</a>
+  <h1>&#127912; Sporting Color Picker</h1>
+  <p>Customise your trading tool with your favourite team's colours.<br>Select a city &mdash; then apply to restyle your app instantly.</p>
+</header>
+
+<div style="max-width:1200px;margin:0 auto">
+
+  <!-- Protected colours notice -->
+  <div class="protected-info">
+    <span class="icon">&#128737;&#65039;</span>
+    <div>
+      <strong>Protected colours:</strong>
+      Signal greens <span class="protected-swatch" style="background:#28a745"></span> <code>#28a745</code>
+      and reds <span class="protected-swatch" style="background:#dc3545"></span> <code>#dc3545</code>
+      used to colour table cells (buy/sell signals) are <strong>never changed</strong> by this tool.
+    </div>
+  </div>
+
+  <!-- Live preview -->
+  <div class="live-preview" id="livePreview">
+    <h3>Live Preview</h3>
+    <div class="preview-row">
+      <span class="preview-heading" id="prevHeading" style="color:#6f42c1">H1 Heading</span>
+      <span class="preview-block preview-th" id="prevTh" style="background:#6f42c1">Table Header</span>
+      <span class="preview-block preview-btn-hover" id="prevHover" style="background:#ffc107">Hover</span>
+      <span class="preview-block preview-nav" id="prevNav" style="background:#007acc">Nav Button</span>
+      <span class="preview-block preview-return" id="prevReturn" style="background:#fd7e14">Return Btn</span>
+    </div>
+    <p class="preview-note">This shows how your chosen colours will map onto the trading tool's UI elements.</p>
+  </div>
+
+</div>
+
+<div class="app">
+  <div class="leagues" id="leagues"></div>
+
+  <aside class="palette-panel">
+    <h2>Color Palette</h2>
+    <div id="palette">
+      <p class="palette-empty">Select a city from any league to see its colours here.</p>
+    </div>
+  </aside>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════════
+//  DEVELOPER CONSOLE GUIDANCE
+// ════════════════════════════════════════════════════════════════
+console.log('%c🎨 Sporting Color Picker — Developer Guide', 'font-size:16px;font-weight:bold;color:#58a6ff');
+console.log('%c─────────────────────────────────────────────', 'color:#30363d');
+console.log('%cThis tool generates CSS variable overrides for the trading analysis app.', 'color:#e6edf3');
+console.log('');
+console.log('%c📋 COLOUR MAPPING (team colours → UI elements):', 'font-weight:bold;color:#d2a8ff');
+console.log('  Color 1 → --team-primary     → Headings (h1,h2), Table headers (th), Buttons');
+console.log('  Color 2 → --team-secondary   → Button hover states, Active pre-select buttons');
+console.log('  Color 3 → --team-accent      → Nav buttons (back-to-tools), Chart indicators');
+console.log('');
+console.log('%c🛡️ PROTECTED COLOURS (never overridden):', 'font-weight:bold;color:#f0883e');
+console.log('  #28a745 / #218838 → Green signal cells  (.green-cell, .adxtr-cell-1)');
+console.log('  #dc3545           → Red signal cells    (.red-cell, .adxtr-cell--1)');
+console.log('  These are trading buy/sell indicators and must remain unchanged.');
+console.log('');
+console.log('%c🔧 HOW TO APPLY PERMANENTLY:', 'font-weight:bold;color:#3fb950');
+console.log('  1. Pick a team → click "Apply to Trading Tool" → colours apply via localStorage');
+console.log('  2. OR click "Copy CSS Variables" → paste into styles-testing.css :root {}');
+console.log('  3. The CSS variable approach in styles-testing.css looks like:');
+console.log('');
+console.log('     :root {');
+console.log('       --team-primary:   #6f42c1;   /* replaces purple headings & th */');
+console.log('       --team-secondary: #ffc107;   /* replaces yellow hover states  */');
+console.log('       --team-accent:    #007acc;   /* replaces blue nav buttons     */');
+console.log('     }');
+console.log('');
+console.log('%c📁 FILES THAT USE THESE COLOURS:', 'font-weight:bold;color:#79c0ff');
+console.log('  styles-testing.css  → All theme colours (#6f42c1, #ffc107, #007acc, #fd7e14)');
+console.log('  index.html          → Inline styles on demo banner, chess promo (gradient colours)');
+console.log('');
+console.log('%c⚠️  Inline styles in index.html (banners) are NOT auto-overridden by CSS variables.', 'color:#f85149');
+console.log('  To change those, edit the inline style="" attributes directly.');
+console.log('%c─────────────────────────────────────────────', 'color:#30363d');
+
+
+// ════════════════════════════════════════════════════════════════
+//  DATA — city/region names only (no team names for legal safety)
+// ════════════════════════════════════════════════════════════════
+const leagueColors = {
+  "NFL": {
+    "Green Bay":       ["#203731","#FFB612"],
+    "Kansas City":     ["#E31837","#FFB81C"],
+    "New Orleans":     ["#D3BC8D","#101820"],
+    "Dallas":          ["#003594","#869397","#FFFFFF"],
+    "Pittsburgh":      ["#FFB612","#101820"],
+    "San Francisco":   ["#AA0000","#B3995D"],
+    "New England":     ["#002244","#C60C30","#B0B7BC"],
+    "Denver":          ["#FB4F14","#002244"],
+    "Seattle":         ["#002244","#69BE28","#A5ACAF"],
+    "Philadelphia":    ["#004C54","#A5ACAF","#000000"],
+    "Baltimore":       ["#241773","#9E7C0C","#000000"],
+    "Buffalo":         ["#00338D","#C60C30"],
+    "Minnesota":       ["#4F2683","#FFC62F"],
+    "Tampa Bay":       ["#D50A0A","#FF7900","#0A0A08"],
+    "Las Vegas":       ["#A5ACAF","#000000"],
+    "Miami":           ["#008E97","#FC4C02","#005778"],
+    "Arizona":         ["#97233F","#000000","#FFB612"],
+    "Los Angeles (A)": ["#003594","#FFA300","#FFD100"],
+    "Los Angeles (B)": ["#002A5E","#FFC20E","#0080C6"],
+    "New York (A)":    ["#0B2265","#A71930","#A5ACAF"],
+    "New York (B)":    ["#125740","#FFFFFF"]
+  },
+  "NBA": {
+    "Boston":           ["#008348","#BA9653","#000000"],
+    "Chicago":          ["#CE1141","#000000"],
+    "Los Angeles (A)":  ["#552583","#FDB927"],
+    "Los Angeles (B)":  ["#C8102E","#1D428A","#FFFFFF"],
+    "Golden State":     ["#1D428A","#FFC72C"],
+    "Miami":            ["#98002E","#F9A01B","#000000"],
+    "Milwaukee":        ["#00471B","#EEE1C6"],
+    "Phoenix":          ["#1D1160","#E56020","#000000"],
+    "Dallas":           ["#00538C","#002B5E","#B8C4CA"],
+    "Philadelphia":     ["#006BB6","#ED174C","#002B5C"],
+    "Denver":           ["#0E2240","#FEC524","#8B2131"],
+    "Toronto":          ["#CE1141","#000000","#A1A1A4"],
+    "Brooklyn":         ["#000000","#FFFFFF"],
+    "Memphis":          ["#5D76A9","#12173F","#F5B112"],
+    "Cleveland":        ["#6F263D","#FFB81C","#041E42"],
+    "Atlanta":          ["#E03A3E","#C1D32F","#000000"],
+    "San Antonio":      ["#C4CED4","#000000"],
+    "New York":         ["#006BB6","#F58426","#BEC0C2"],
+    "Sacramento":       ["#5A2D81","#63727A","#000000"],
+    "Minnesota":        ["#0C2340","#236192","#78BE20"]
+  },
+  "MLB": {
+    "Boston":           ["#BD3039","#0C2340"],
+    "New York (A)":     ["#003087","#E4002B"],
+    "New York (B)":     ["#002D72","#FF5910"],
+    "Chicago (A)":      ["#0E3386","#C8102E"],
+    "Chicago (B)":      ["#CC3433","#0E3386"],
+    "Los Angeles (A)":  ["#005A9C","#EF3E42","#A5ACAF"],
+    "Los Angeles (B)":  ["#003263","#BA0021","#C4CED4"],
+    "St. Louis":        ["#C41E3A","#0C2340","#FEDB00"],
+    "Houston":          ["#002D62","#EB6E1F"],
+    "San Francisco":    ["#FD5A1E","#27251F","#EFD19F"],
+    "Atlanta":          ["#CE1141","#13274F"],
+    "Philadelphia":     ["#E81828","#002D72"],
+    "Detroit":          ["#0C2340","#FA4616"],
+    "Pittsburgh":       ["#27251F","#FDB827"],
+    "Milwaukee":        ["#12284B","#FFC52F"],
+    "Toronto":          ["#134A8E","#1D2D5C","#E8291C"],
+    "Seattle":          ["#0C2C56","#005C5C","#C4CED4"],
+    "San Diego":        ["#2F241D","#FFC425"],
+    "Cincinnati":       ["#C6011F","#000000"]
+  },
+  "NHL": {
+    "Toronto":          ["#00205B","#FFFFFF"],
+    "Detroit":          ["#CE1126","#FFFFFF"],
+    "Chicago":          ["#CF0A2C","#000000","#FF671B"],
+    "Montreal":         ["#AF1E2D","#192168"],
+    "Boston":           ["#FFB81C","#000000"],
+    "New York (A)":     ["#0038A8","#CE1126","#FFFFFF"],
+    "New York (B)":     ["#00539B","#F47D30"],
+    "Pittsburgh":       ["#FCB514","#000000","#CFC493"],
+    "Edmonton":         ["#041E42","#FF4C00"],
+    "Colorado":         ["#6F263D","#236192","#A2AAAD"],
+    "Tampa Bay":        ["#002868","#FFFFFF"],
+    "Vancouver":        ["#00205B","#00843D","#041C2C"],
+    "Calgary":          ["#D2001C","#FAAF19"],
+    "Philadelphia":     ["#F74902","#000000"],
+    "Washington":       ["#C8102E","#041E42","#FFFFFF"],
+    "Dallas":           ["#006847","#8F8F8C","#111111"],
+    "Las Vegas":        ["#B4975A","#333F42","#C8102E"],
+    "Seattle":          ["#99D9D9","#001628","#355464"],
+    "Carolina":         ["#CC0000","#000000","#A2AAAD"],
+    "Florida":          ["#041E42","#C8102E","#B9975B"]
+  },
+  "European Soccer": {
+    "Manchester (Red)":     ["#DA291C","#FBE122","#000000"],
+    "Manchester (Blue)":    ["#6CABDD","#1C2C5B"],
+    "Liverpool":            ["#C8102E","#00B2A9","#F6EB61"],
+    "London (Blue)":        ["#034694","#FFFFFF"],
+    "London (Red)":         ["#EF0107","#063672","#FFFFFF"],
+    "London (White)":       ["#132257","#FFFFFF"],
+    "Madrid (White)":       ["#FEBE10","#00529F","#FFFFFF"],
+    "Madrid (Red)":         ["#CB3524","#272E61","#FFFFFF"],
+    "Barcelona":            ["#A50044","#004D98","#EDBB00"],
+    "Munich":               ["#DC052D","#0066B2","#FFFFFF"],
+    "Dortmund":             ["#FDE100","#000000"],
+    "Milan (Red)":          ["#FB090B","#000000"],
+    "Milan (Blue)":         ["#0068A8","#000000"],
+    "Turin":                ["#000000","#FFFFFF"],
+    "Paris":                ["#004170","#DA291C","#FFFFFF"],
+    "Amsterdam":            ["#D2122E","#FFFFFF","#000000"],
+    "Lisbon (Red)":         ["#E31F26","#FFFFFF","#006847"],
+    "Rome (Sky Blue)":      ["#87D8F7","#FFFFFF","#15366E"],
+    "Glasgow (Green)":      ["#009E49","#FFFFFF"],
+    "Glasgow (Blue)":       ["#0000FF","#FFFFFF","#C80815"]
+  }
+};
+
+
+// ════════════════════════════════════════════════════════════════
+//  COLOUR ROLE MAPPING
+//  Developer note:
+//    Color[0] → primary brand (headings, th, buttons)
+//    Color[1] → secondary / hover accent
+//    Color[2] → nav / tertiary accent (falls back to [1] or [0])
+// ════════════════════════════════════════════════════════════════
+const COLOR_ROLES = [
+  {
+    key: 'primary',
+    label: 'Primary — Headings, Table Headers, Buttons',
+    cssVar: '--team-primary',
+    replaces: '#6f42c1 (purple)',
+    targets: 'h1, h2 color · th background · .section button bg · .full-width-button bg · .pre-select bg'
+  },
+  {
+    key: 'secondary',
+    label: 'Secondary — Hover States',
+    cssVar: '--team-secondary',
+    replaces: '#ffc107 (yellow)',
+    targets: '.section button:hover bg · .full-width-button:hover bg · .pre-select:hover bg'
+  },
+  {
+    key: 'accent',
+    label: 'Accent — Navigation Buttons',
+    cssVar: '--team-accent',
+    replaces: '#007acc (blue)',
+    targets: '.back-to-tools-btn bg · chart indicator colours'
+  }
+];
+
+
+// ════════════════════════════════════════════════════════════════
+//  DOM REFERENCES
+// ════════════════════════════════════════════════════════════════
+const leaguesEl = document.getElementById('leagues');
+const paletteEl = document.getElementById('palette');
+
+// ════════════════════════════════════════════════════════════════
+//  BUILD LEAGUE UI
+// ════════════════════════════════════════════════════════════════
+function buildLeagues() {
+  for (const [league, cities] of Object.entries(leagueColors)) {
+    const section = document.createElement('section');
+    section.className = 'league-section';
+
+    const heading = document.createElement('h2');
+    heading.textContent = league;
+    section.appendChild(heading);
+
+    const grid = document.createElement('div');
+    grid.className = 'city-grid';
+
+    for (const [city, colors] of Object.entries(cities)) {
+      const btn = document.createElement('button');
+      btn.className = 'city-btn';
+      btn.dataset.league = league;
+      btn.dataset.city = city;
+
+      // City name text
+      const nameSpan = document.createElement('span');
+      nameSpan.textContent = city;
+      btn.appendChild(nameSpan);
+
+      // Colour dots preview
+      const dots = document.createElement('span');
+      dots.className = 'city-dots';
+      colors.forEach(c => {
+        const dot = document.createElement('span');
+        dot.className = 'city-dot';
+        dot.style.background = c;
+        dots.appendChild(dot);
+      });
+      btn.appendChild(dots);
+
+      grid.appendChild(btn);
+    }
+
+    section.appendChild(grid);
+    leaguesEl.appendChild(section);
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+//  HELPERS
+// ════════════════════════════════════════════════════════════════
+function hexToRgb(hex) {
+  const h = hex.replace('#','');
+  const r = parseInt(h.substring(0,2),16);
+  const g = parseInt(h.substring(2,4),16);
+  const b = parseInt(h.substring(4,6),16);
+  return 'rgb(' + r + ', ' + g + ', ' + b + ')';
+}
+
+function luminance(hex) {
+  const h = hex.replace('#','');
+  const r = parseInt(h.substring(0,2),16)/255;
+  const g = parseInt(h.substring(2,4),16)/255;
+  const b = parseInt(h.substring(4,6),16)/255;
+  return 0.2126*r + 0.7152*g + 0.0722*b;
+}
+
+function darkenHex(hex, percent) {
+  const h = hex.replace('#','');
+  let r = parseInt(h.substring(0,2),16);
+  let g = parseInt(h.substring(2,4),16);
+  let b = parseInt(h.substring(4,6),16);
+  r = Math.max(0, Math.round(r * (1 - percent/100)));
+  g = Math.max(0, Math.round(g * (1 - percent/100)));
+  b = Math.max(0, Math.round(b * (1 - percent/100)));
+  return '#' + [r,g,b].map(function(v){ return v.toString(16).padStart(2,'0'); }).join('');
+}
+
+// ════════════════════════════════════════════════════════════════
+//  LIVE PREVIEW UPDATE
+// ════════════════════════════════════════════════════════════════
+function updateLivePreview(colors) {
+  var primary   = colors[0];
+  var secondary = colors[1] || colors[0];
+  var accent    = colors[2] || colors[1] || colors[0];
+
+  document.getElementById('prevHeading').style.color = primary;
+  document.getElementById('prevTh').style.background = primary;
+  document.getElementById('prevTh').style.color = luminance(primary) > 0.5 ? '#000' : '#fff';
+  document.getElementById('prevHover').style.background = secondary;
+  document.getElementById('prevHover').style.color = luminance(secondary) > 0.5 ? '#000' : '#fff';
+  document.getElementById('prevNav').style.background = accent;
+  document.getElementById('prevNav').style.color = luminance(accent) > 0.5 ? '#000' : '#fff';
+
+  var returnCol = colors.length >= 3 ? darkenHex(accent, 15) : darkenHex(primary, 10);
+  document.getElementById('prevReturn').style.background = returnCol;
+  document.getElementById('prevReturn').style.color = luminance(returnCol) > 0.5 ? '#000' : '#fff';
+}
+
+// ════════════════════════════════════════════════════════════════
+//  SHOW PALETTE
+// ════════════════════════════════════════════════════════════════
+function showPalette(league, city) {
+  var colors = leagueColors[league][city];
+  if (!colors) return;
+
+  updateLivePreview(colors);
+
+  paletteEl.innerHTML = '';
+
+  // Label
+  var label = document.createElement('p');
+  label.className = 'selected-label';
+  label.textContent = city + ' \u2014 ' + league;
+  paletteEl.appendChild(label);
+
+  // Preview strip
+  var strip = document.createElement('div');
+  strip.className = 'preview-strip';
+  colors.forEach(function(c) {
+    var d = document.createElement('div');
+    d.style.background = c;
+    strip.appendChild(d);
+  });
+  paletteEl.appendChild(strip);
+
+  // Swatches
+  var list = document.createElement('div');
+  list.className = 'swatch-list';
+  list.style.marginTop = '1rem';
+
+  colors.forEach(function(hex, idx) {
+    var swatch = document.createElement('div');
+    swatch.className = 'swatch';
+
+    var colorBlock = document.createElement('div');
+    colorBlock.className = 'swatch-color';
+    colorBlock.style.background = hex;
+    var inner = document.createElement('span');
+    inner.style.color = luminance(hex) > 0.5 ? '#000' : '#fff';
+    inner.style.fontSize = '.7rem';
+    inner.style.fontWeight = '600';
+    inner.style.fontFamily = 'Consolas, monospace';
+    inner.textContent = hex;
+    colorBlock.appendChild(inner);
+
+    var info = document.createElement('div');
+    info.className = 'swatch-info';
+
+    var hexLabel = document.createElement('div');
+    hexLabel.className = 'swatch-hex';
+    hexLabel.textContent = hex;
+
+    var rgbLabel = document.createElement('div');
+    rgbLabel.className = 'swatch-rgb';
+    rgbLabel.textContent = hexToRgb(hex);
+
+    info.appendChild(hexLabel);
+    info.appendChild(rgbLabel);
+
+    // Show mapping role
+    var role = COLOR_ROLES[idx];
+    if (role) {
+      var roleLabel = document.createElement('div');
+      roleLabel.className = 'swatch-mapping';
+      roleLabel.textContent = '\u2192 ' + role.label;
+      info.appendChild(roleLabel);
+    }
+
+    var copyBtn = document.createElement('button');
+    copyBtn.className = 'copy-btn';
+    copyBtn.textContent = 'Copy HEX';
+    copyBtn.addEventListener('click', function() { copyToClipboard(hex, copyBtn); });
+    info.appendChild(copyBtn);
+
+    swatch.appendChild(colorBlock);
+    swatch.appendChild(info);
+    list.appendChild(swatch);
+  });
+
+  paletteEl.appendChild(list);
+
+  // ── Action buttons ──
+  var applySection = document.createElement('div');
+  applySection.className = 'apply-section';
+
+  // Apply to trading tool (localStorage-based)
+  var applyBtn = document.createElement('button');
+  applyBtn.className = 'apply-btn';
+  applyBtn.textContent = '\uD83C\uDFA8 Apply to Trading Tool';
+  applyBtn.addEventListener('click', function() {
+    var theme = {
+      city: city,
+      league: league,
+      primary:   colors[0],
+      secondary: colors[1] || colors[0],
+      accent:    colors[2] || colors[1] || colors[0]
+    };
+    localStorage.setItem('trading-team-theme', JSON.stringify(theme));
+
+    // Developer console guidance
+    console.log('%c\u2705 Theme applied and saved to localStorage', 'color:#3fb950;font-weight:bold');
+    console.log('%c   Key: "trading-team-theme"', 'color:#8b949e');
+    console.log('   Value:', theme);
+    console.log('%c   The trading tool (index.html) reads this on load and applies CSS overrides.', 'color:#8b949e');
+    console.log('%c   To remove: localStorage.removeItem("trading-team-theme")', 'color:#f0883e');
+
+    applyBtn.textContent = '\u2705 Applied! Open Trading Tool to see it.';
+    applyBtn.classList.add('applied');
+    setTimeout(function() {
+      applyBtn.textContent = '\uD83C\uDFA8 Apply to Trading Tool';
+      applyBtn.classList.remove('applied');
+    }, 3000);
+  });
+
+  // Copy CSS variables
+  var copyCssBtn = document.createElement('button');
+  copyCssBtn.className = 'copy-css-btn';
+  copyCssBtn.textContent = '\uD83D\uDCCB Copy CSS Variables';
+  copyCssBtn.addEventListener('click', function() {
+    var primary   = colors[0];
+    var secondary = colors[1] || colors[0];
+    var accent    = colors[2] || colors[1] || colors[0];
+    var css = [
+      '/* Sporting Color Picker \u2014 ' + city + ' (' + league + ') */',
+      '/* Paste into styles-testing.css or a <style> tag after the stylesheet link. */',
+      '/* PROTECTED: #28a745 (green) and #dc3545 (red) signal cells are unchanged. */',
+      ':root {',
+      '  --team-primary:        ' + primary + ';    /* Headings, table headers, buttons (replaces #6f42c1) */',
+      '  --team-secondary:      ' + secondary + ';  /* Hover states (replaces #ffc107) */',
+      '  --team-accent:         ' + accent + ';     /* Nav buttons (replaces #007acc) */',
+      '  --team-primary-dark:   ' + darkenHex(primary, 15) + ';   /* Darker variant for press/active */',
+      '  --team-secondary-dark: ' + darkenHex(secondary, 15) + '; /* Darker hover variant */',
+      '  --team-accent-dark:    ' + darkenHex(accent, 15) + ';    /* Darker nav hover */',
+      '}'
+    ].join('\n');
+
+    copyToClipboard(css, copyCssBtn, 'Copied CSS!', '\uD83D\uDCCB Copy CSS Variables');
+
+    console.log('%c\uD83D\uDCCB CSS Variables copied to clipboard:', 'color:#79c0ff;font-weight:bold');
+    console.log(css);
+    console.log('%c\uD83D\uDCA1 Paste into styles-testing.css :root block or a <style> tag in index.html', 'color:#8b949e');
+  });
+
+  // Reset
+  var resetBtn = document.createElement('button');
+  resetBtn.className = 'reset-btn';
+  resetBtn.textContent = '\uD83D\uDDD1\uFE0F Reset to Default Colours';
+  resetBtn.addEventListener('click', function() {
+    localStorage.removeItem('trading-team-theme');
+    document.querySelectorAll('.city-btn.active').forEach(function(b) { b.classList.remove('active'); });
+    paletteEl.innerHTML = '<p class="palette-empty">Select a city from any league to see its colours here.</p>';
+
+    // Reset live preview to defaults
+    document.getElementById('prevHeading').style.color = '#6f42c1';
+    document.getElementById('prevTh').style.background = '#6f42c1';
+    document.getElementById('prevTh').style.color = '#fff';
+    document.getElementById('prevHover').style.background = '#ffc107';
+    document.getElementById('prevHover').style.color = '#000';
+    document.getElementById('prevNav').style.background = '#007acc';
+    document.getElementById('prevNav').style.color = '#fff';
+    document.getElementById('prevReturn').style.background = '#fd7e14';
+    document.getElementById('prevReturn').style.color = '#fff';
+
+    console.log('%c\uD83D\uDDD1\uFE0F Theme reset \u2014 localStorage cleared, default colours restored.', 'color:#f85149');
+  });
+
+  applySection.appendChild(applyBtn);
+  applySection.appendChild(copyCssBtn);
+  applySection.appendChild(resetBtn);
+  paletteEl.appendChild(applySection);
+}
+
+// ════════════════════════════════════════════════════════════════
+//  COPY TO CLIPBOARD
+// ════════════════════════════════════════════════════════════════
+function copyToClipboard(text, btn, successText, resetText) {
+  var okLabel = successText || 'Copied!';
+  var origLabel = resetText || 'Copy HEX';
+
+  navigator.clipboard.writeText(text).then(function() {
+    btn.textContent = okLabel;
+    btn.classList.add('copied');
+    setTimeout(function() { btn.textContent = origLabel; btn.classList.remove('copied'); }, 1500);
+  }).catch(function() {
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta);
+    btn.textContent = okLabel;
+    btn.classList.add('copied');
+    setTimeout(function() { btn.textContent = origLabel; btn.classList.remove('copied'); }, 1500);
+  });
+}
+
+// ════════════════════════════════════════════════════════════════
+//  EVENT DELEGATION
+// ════════════════════════════════════════════════════════════════
+leaguesEl.addEventListener('click', function(e) {
+  var btn = e.target.closest('.city-btn');
+  if (!btn) return;
+  document.querySelectorAll('.city-btn.active').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+  showPalette(btn.dataset.league, btn.dataset.city);
+});
+
+// ════════════════════════════════════════════════════════════════
+//  ON LOAD — restore active theme if one exists
+// ════════════════════════════════════════════════════════════════
+(function restoreTheme() {
+  var saved = localStorage.getItem('trading-team-theme');
+  if (saved) {
+    try {
+      var theme = JSON.parse(saved);
+      console.log('%c\uD83C\uDFA8 Existing team theme found in localStorage:', 'color:#58a6ff', theme);
+      updateLivePreview([theme.primary, theme.secondary, theme.accent]);
+    } catch(e) { /* ignore corrupt data */ }
+  }
+})();
+
+// ════════════════════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════════════════════
+buildLeagues();
+</script>
+</body>
+</html>
