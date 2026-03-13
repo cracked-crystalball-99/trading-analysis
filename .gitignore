@@ -63,3 +63,7 @@ AI-TEACHER-README.md
 AI-TEACHER-TESTING.md
 DEMO_MODE_README.md
 QUICK-START.md
+
+# Testing infrastructure (private - not needed on GitHub Pages)
+__tests__/
+jest.config.js
