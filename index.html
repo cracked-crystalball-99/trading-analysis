@@ -270,15 +270,34 @@
           '.date-picker button, .ticker-search button { background-color: ' + p + ' !important; }',
           '.pre-select { background-color: ' + p + ' !important; }',
           '.loading-content { background-color: ' + toRgba(p, 0.95) + ' !important; }',
+          '#plCalculateBtn { background-color: ' + p + ' !important; }',
+          '.pl-nav-to-calc { background-color: ' + p + ' !important; }',
+          '.pl-bt-step-num { background-color: ' + p + ' !important; }',
+          '.pl-bt-step { border-left-color: ' + p + ' !important; }',
+          '.pl-mode-tab.active { color: ' + p + ' !important; border-bottom-color: ' + p + ' !important; }',
+          '.pl-results h3 { color: ' + p + ' !important; }',
+          '.pl-field input:focus, .pl-bt-step select:focus, .pl-bt-pick-row input:focus { border-color: ' + p + ' !important; box-shadow: 0 0 0 2px ' + toRgba(p, 0.2) + ' !important; }',
+          '',
+          '/* SECONDARY ─ replaces #ffc107 (yellow hover) */',
           '.section button:hover { background-color: ' + s + ' !important; }',
           '.full-width-button:hover { background-color: ' + s + ' !important; }',
           '.date-picker button:hover, .ticker-search button:hover { background-color: ' + s + ' !important; }',
           '.pre-select:hover { background-color: ' + s + ' !important; }',
+          '#plCalculateBtn:hover { background-color: ' + s + ' !important; }',
+          '.pl-nav-to-calc:hover { background-color: ' + s + ' !important; }',
+          '',
+          '/* ACCENT ─ replaces #007acc (blue nav) */',
           '.back-to-tools-btn { background-color: ' + a + ' !important; }',
           '.back-to-tools-btn:hover { background-color: ' + dk(a, 20) + ' !important; }',
           '.tooltip.has-chart::after { color: ' + a + ' !important; border-color: ' + a + ' !important; }',
+          '',
+          '/* RETURN BUTTON ─ replaces #fd7e14 (orange) */',
           '.return-to-tool-btn { background-color: ' + dk(a, 10) + ' !important; }',
           '.return-to-tool-btn:hover { background-color: ' + dk(a, 25) + ' !important; }',
+          '',
+          '/* ════ PROTECTED ─ green/red signal cells are NOT overridden ════ */',
+          '/* .green-cell, .adxtr-cell-1    keep #28a745 */',
+          '/* .red-cell,   .adxtr-cell--1   keep #dc3545 */',
         ].join('\n');
 
         var style = document.createElement('style');
@@ -294,7 +313,7 @@
 </head>
 <body>
     <div class="main-container">
-        <h1>Technical Analysis Tool</h1>
+        <h1>Technical Analysis Tool <a href="#plCalculatorSection" style="font-size:0.45em; font-weight:normal; color:#6f42c1; text-decoration:none; vertical-align:middle;">[P&amp;L Calculator ↓]</a></h1>
 
     <!-- Demo Mode Banner -->
     <div id="demoBanner" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: 2px solid #5a67d8; border-radius: 12px; padding: 20px; margin: 20px auto; text-align: center; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
@@ -1108,7 +1127,429 @@
         </div>
         <canvas id="allToolsVotesChart" width="800" height="400"></canvas>
     </div>
-   
+
+    <!-- ═══ Profit & Loss Calculator ═══ -->
+    <div class="section" id="plCalculatorSection">
+        <h2>💰 Profit &amp; Loss Calculator <a href="#" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;" style="font-size:0.55em; font-weight:normal; color:#6f42c1; text-decoration:none; vertical-align:middle;">[Back to Top ↑]</a></h2>
+        <p style="text-align:center; color:#6c757d; margin-bottom:18px;">
+            Calculate your potential stock trade profit or loss — or backtest a signal.
+        </p>
+
+        <div class="pl-calculator">
+
+            <!-- Mode tabs -->
+            <div class="pl-mode-tabs">
+                <button class="pl-mode-tab active" onclick="plSwitchMode('manual')">Manual Entry</button>
+                <button class="pl-mode-tab" onclick="plSwitchMode('backtest')">Backtest a Signal</button>
+            </div>
+
+            <!-- Manual Mode -->
+            <div id="plManualMode" class="pl-mode-panel">
+                <div class="pl-inputs">
+                    <div class="pl-field">
+                        <label for="plBuyPrice">Buy Price ($)</label>
+                        <input type="number" id="plBuyPrice" min="0" step="0.01" placeholder="e.g. 150.00">
+                    </div>
+                    <div class="pl-field">
+                        <label for="plSellPrice">Sell Price ($)</label>
+                        <input type="number" id="plSellPrice" min="0" step="0.01" placeholder="e.g. 175.00">
+                    </div>
+                    <div class="pl-field">
+                        <label for="plShares">Number of Shares</label>
+                        <input type="number" id="plShares" min="1" step="1" placeholder="e.g. 100">
+                    </div>
+                    <div class="pl-field">
+                        <label for="plBuyCommission">Buy Commission ($)</label>
+                        <input type="number" id="plBuyCommission" min="0" step="0.01" placeholder="0.00" value="0">
+                    </div>
+                    <div class="pl-field">
+                        <label for="plSellCommission">Sell Commission ($)</label>
+                        <input type="number" id="plSellCommission" min="0" step="0.01" placeholder="0.00" value="0">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Backtest Mode -->
+            <div id="plBacktestMode" class="pl-mode-panel" style="display:none;">
+                <!-- Step 1: Pick a tool -->
+                <div class="pl-bt-step">
+                    <span class="pl-bt-step-num">1</span>
+                    <label for="plToolSelect">Pick a signal tool</label>
+                    <select id="plToolSelect" onchange="plOnToolChange()">
+                        <option value="">— Select a tool —</option>
+                        <option value="adxtrTable">Tool #1 ADXTR</option>
+                        <option value="bbtrTable">Tool #2 BBTR</option>
+                        <option value="ccitrTable">Tool #3 CCITR</option>
+                        <option value="cmacdTable">Tool #4 CMACDTR</option>
+                        <option value="smacdTable">Tool #5 SMACDTR</option>
+                        <option value="roctrTable">Tool #6 ROCTR</option>
+                        <option value="rsitrTable">Tool #7 RSITR</option>
+                        <option value="sartrTable">Tool #8 SARTR</option>
+                        <option value="smitrTable">Tool #9 SMITR</option>
+                        <option value="wprtrTable">Tool #10 WPRTR</option>
+                        <option value="ccismatrTable">Tool #11 CCISMATR</option>
+                        <option value="rocsmatrTable">Tool #12 ROCSMATR</option>
+                        <option value="rsismatrTable">Tool #13 RSISMATR</option>
+                        <option value="smismatrTable">Tool #14 SMISMATR</option>
+                        <option value="wprsmatrTable">Tool #15 WPRSMATR</option>
+                    </select>
+                </div>
+
+                <!-- Step 2: Pick BUY signal date -->
+                <div class="pl-bt-step">
+                    <span class="pl-bt-step-num">2</span>
+                    <label>Pick a <strong style="color:#28a745;">BUY</strong> signal date
+                        <span class="pl-info-icon" tabindex="0">ℹ️<span class="pl-info-tooltip">Scroll up to the selected tool's table and click a <strong style="color:#28a745;">green</strong> row — or type a date here manually. The Close price from Table 1 is looked up automatically.</span></span>
+                    </label>
+                    <div class="pl-bt-pick-row">
+                        <input type="text" id="plBtBuyDate" readonly placeholder="Click a green row above…">
+                        <span id="plBtBuyPrice" class="pl-bt-price">—</span>
+                        <button type="button" class="pl-bt-clear" onclick="plClearSignal('buy')" title="Clear">&times;</button>
+                    </div>
+                </div>
+
+                <!-- Step 3: Pick SELL signal date -->
+                <div class="pl-bt-step">
+                    <span class="pl-bt-step-num">3</span>
+                    <label>Pick a <strong style="color:#dc3545;">SELL</strong> signal date
+                        <span class="pl-info-icon" tabindex="0">ℹ️<span class="pl-info-tooltip">Scroll up to the selected tool's table and click a <strong style="color:#dc3545;">red</strong> row — or type a date here manually. The Close price from Table 1 is looked up automatically.</span></span>
+                    </label>
+                    <div class="pl-bt-pick-row">
+                        <input type="text" id="plBtSellDate" readonly placeholder="Click a red row above…">
+                        <span id="plBtSellPrice" class="pl-bt-price">—</span>
+                        <button type="button" class="pl-bt-clear" onclick="plClearSignal('sell')" title="Clear">&times;</button>
+                    </div>
+                </div>
+
+                <!-- Shares + commissions in backtest mode -->
+                <div class="pl-inputs" style="margin-top:12px;">
+                    <div class="pl-field">
+                        <label for="plBtShares">Number of Shares</label>
+                        <input type="number" id="plBtShares" min="1" step="1" placeholder="e.g. 100">
+                    </div>
+                    <div class="pl-field">
+                        <label for="plBtBuyComm">Buy Commission ($)</label>
+                        <input type="number" id="plBtBuyComm" min="0" step="0.01" value="0">
+                    </div>
+                    <div class="pl-field">
+                        <label for="plBtSellComm">Sell Commission ($)</label>
+                        <input type="number" id="plBtSellComm" min="0" step="0.01" value="0">
+                    </div>
+                </div>
+            </div>
+
+            <div class="pl-buttons">
+                <button id="plCalculateBtn" onclick="calculateProfitLoss()">Calculate</button>
+                <button id="plResetBtn" onclick="resetProfitLoss()" style="background-color:#6c757d;">Reset</button>
+            </div>
+
+            <!-- Results -->
+            <div id="plResults" class="pl-results" style="display:none;">
+                <h3 style="text-align:center; margin-bottom:14px;">Results</h3>
+                <div id="plResultsMeta" class="pl-results-meta"></div>
+                <table class="pl-results-table">
+                    <tbody>
+                        <tr><td class="pl-label">Total Cost (Buy)</td><td id="plTotalCost" class="pl-value">—</td></tr>
+                        <tr><td class="pl-label">Total Revenue (Sell)</td><td id="plTotalRevenue" class="pl-value">—</td></tr>
+                        <tr><td class="pl-label">Total Commissions</td><td id="plTotalCommissions" class="pl-value">—</td></tr>
+                        <tr class="pl-highlight-row"><td class="pl-label"><strong>Net Profit / Loss</strong></td><td id="plNetResult" class="pl-value" style="font-size:1.2em;font-weight:bold;">—</td></tr>
+                        <tr><td class="pl-label">Return on Investment</td><td id="plROI" class="pl-value">—</td></tr>
+                        <tr><td class="pl-label">Break-Even Price</td><td id="plBreakEven" class="pl-value">—</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!-- ═══ End Profit & Loss Calculator ═══ -->
+
+    <script>
+    /* ═══ Internal Cell Reference System ═══ */
+    var plCellRef = {
+        get: function(tableId, row, col) {
+            var table = document.getElementById(tableId);
+            if (!table) return null;
+            var rows = table.querySelectorAll('tbody tr');
+            if (row < 0 || row >= rows.length) return null;
+            var cells = rows[row].querySelectorAll('td');
+            if (col < 0 || col >= cells.length) return null;
+            return cells[col].textContent.trim();
+        },
+        colIdx: function(letter) { return letter.toUpperCase().charCodeAt(0) - 65; },
+        cell: function(tableId, ref) {
+            var col = ref.match(/[A-Z]+/i)[0];
+            var row = parseInt(ref.match(/\d+/)[0]) - 1;
+            return this.get(tableId, row, this.colIdx(col));
+        },
+        findRowByDate: function(tableId, dateStr) {
+            var table = document.getElementById(tableId);
+            if (!table) return -1;
+            var rows = table.querySelectorAll('tbody tr');
+            for (var i = 0; i < rows.length; i++) {
+                if (rows[i].querySelectorAll('td')[0].textContent.trim() === dateStr) return i;
+            }
+            return -1;
+        },
+        getClosePrice: function(dateStr) {
+            var row = this.findRowByDate('csvTable', dateStr);
+            if (row === -1) return null;
+            var val = this.get('csvTable', row, 4); // Column E = Close
+            return val ? parseFloat(val) : null;
+        }
+    };
+
+    /* ═══ Tool metadata ═══ */
+    var plToolNames = {
+        adxtrTable:'ADXTR', bbtrTable:'BBTR', ccitrTable:'CCITR',
+        cmacdTable:'CMACDTR', smacdTable:'SMACDTR', roctrTable:'ROCTR',
+        rsitrTable:'RSITR', sartrTable:'SARTR', smitrTable:'SMITR',
+        wprtrTable:'WPRTR', ccismatrTable:'CCISMATR', rocsmatrTable:'ROCSMATR',
+        rsismatrTable:'RSISMATR', smismatrTable:'SMISMATR', wprsmatrTable:'WPRSMATR'
+    };
+
+    /* Which table section contains each signal table (parent .section) */
+    function plFindToolSection(tableId) {
+        var table = document.getElementById(tableId);
+        return table ? table.closest('.section') : null;
+    }
+
+    /* ═══ Mode Switching ═══ */
+    var plCurrentMode = 'manual';
+
+    function plSwitchMode(mode) {
+        plCurrentMode = mode;
+        document.getElementById('plManualMode').style.display  = mode === 'manual'   ? '' : 'none';
+        document.getElementById('plBacktestMode').style.display = mode === 'backtest' ? '' : 'none';
+        document.querySelectorAll('.pl-mode-tab').forEach(function(t) { t.classList.remove('active'); });
+        document.querySelector('.pl-mode-tab[onclick*="' + mode + '"]').classList.add('active');
+    }
+
+    /* ═══ Backtest State ═══ */
+    var plBtBuyPrice  = null, plBtBuyDateVal  = '';
+    var plBtSellPrice = null, plBtSellDateVal = '';
+
+    function plClearSignal(side) {
+        if (side === 'buy')  { plBtBuyPrice = null;  plBtBuyDateVal = '';  }
+        if (side === 'sell') { plBtSellPrice = null; plBtSellDateVal = ''; }
+        document.getElementById(side === 'buy' ? 'plBtBuyDate' : 'plBtSellDate').value = '';
+        document.getElementById(side === 'buy' ? 'plBtBuyPrice' : 'plBtSellPrice').textContent = '—';
+        document.getElementById(side === 'buy' ? 'plBtBuyPrice' : 'plBtSellPrice').style.color = '';
+    }
+
+    /* ═══ Dynamic "↓ Back to Calculator" buttons on tool tables ═══ */
+    var plInjectedBtns = [];
+
+    function plOnToolChange() {
+        // Remove previously injected buttons
+        plInjectedBtns.forEach(function(btn) { btn.remove(); });
+        plInjectedBtns = [];
+        // Remove hover listeners from all signal tables
+        plRemoveHoverAll();
+        // Clear previous picks
+        plClearSignal('buy');
+        plClearSignal('sell');
+
+        var tableId = document.getElementById('plToolSelect').value;
+        if (!tableId) return;
+
+        var section = plFindToolSection(tableId);
+        if (section) {
+            var btn = document.createElement('button');
+            btn.className = 'pl-nav-to-calc';
+            btn.textContent = '↓ Back to P&L Calculator';
+            btn.onclick = function() {
+                document.getElementById('plCalculatorSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            };
+            // Insert after the table's scrollable container
+            var scrollable = section.querySelector('.scrollable');
+            if (scrollable && scrollable.nextSibling) {
+                section.insertBefore(btn, scrollable.nextSibling);
+            } else {
+                section.appendChild(btn);
+            }
+            plInjectedBtns.push(btn);
+        }
+
+        // Set up close-price hover for this tool's signal table
+        plSetupHover(tableId);
+    }
+
+    /* ═══ Close-Price Hover on Signal Table Rows ═══ */
+    var plHoverCleanups = [];
+
+    function plRemoveHoverAll() {
+        plHoverCleanups.forEach(function(fn) { fn(); });
+        plHoverCleanups = [];
+        // Remove any lingering hover badges
+        document.querySelectorAll('.pl-hover-price').forEach(function(el) { el.remove(); });
+    }
+
+    function plSetupHover(tableId) {
+        var table = document.getElementById(tableId);
+        if (!table) return;
+        var tbody = table.querySelector('tbody');
+        if (!tbody) return;
+
+        function onEnter(e) {
+            var row = e.target.closest('tr');
+            if (!row) return;
+            var signalCell = row.querySelectorAll('td')[1];
+            if (!signalCell) return;
+            if (!signalCell.classList.contains('green-cell') && !signalCell.classList.contains('red-cell')) return;
+
+            // Don't add duplicate badge
+            if (row.querySelector('.pl-hover-price')) return;
+
+            var dateStr = row.querySelectorAll('td')[0].textContent.trim();
+            var price = plCellRef.getClosePrice(dateStr);
+            if (price === null) return;
+
+            var badge = document.createElement('span');
+            badge.className = 'pl-hover-price';
+            badge.textContent = 'Close: $' + price.toFixed(2);
+            signalCell.style.position = 'relative';
+            signalCell.appendChild(badge);
+        }
+
+        function onLeave(e) {
+            var row = e.target.closest('tr');
+            if (!row) return;
+            var badge = row.querySelector('.pl-hover-price');
+            if (badge) badge.remove();
+        }
+
+        tbody.addEventListener('mouseover', onEnter);
+        tbody.addEventListener('mouseout', onLeave);
+
+        plHoverCleanups.push(function() {
+            tbody.removeEventListener('mouseover', onEnter);
+            tbody.removeEventListener('mouseout', onLeave);
+        });
+    }
+
+    /* ═══ Click-to-Pick: one BUY + one SELL from signal table ═══ */
+    function plSetupClickToPick() {
+        var allIds = Object.keys(plToolNames);
+        allIds.forEach(function(tableId) {
+            var table = document.getElementById(tableId);
+            if (!table) return;
+            table.addEventListener('click', function(e) {
+                if (plCurrentMode !== 'backtest') return;
+                var selectedTool = document.getElementById('plToolSelect').value;
+                if (selectedTool !== tableId) return;
+
+                var row = e.target.closest('tr');
+                if (!row || !row.querySelector('td')) return;
+                var signalCell = row.querySelectorAll('td')[1];
+                if (!signalCell) return;
+
+                var isGreen = signalCell.classList.contains('green-cell');
+                var isRed   = signalCell.classList.contains('red-cell');
+                if (!isGreen && !isRed) return;
+
+                var dateStr = row.querySelectorAll('td')[0].textContent.trim();
+                var price   = plCellRef.getClosePrice(dateStr);
+                if (price === null) {
+                    alert('⚠️ Date "' + dateStr + '" not found in Table 1. Load data first.');
+                    return;
+                }
+
+                // Flash row
+                row.style.transition = 'background 0.3s';
+                row.style.background = isGreen ? 'rgba(40,167,69,0.25)' : 'rgba(220,53,69,0.25)';
+                setTimeout(function() { row.style.background = ''; }, 600);
+
+                if (isGreen) {
+                    plBtBuyPrice = price; plBtBuyDateVal = dateStr;
+                    document.getElementById('plBtBuyDate').value = dateStr;
+                    var bp = document.getElementById('plBtBuyPrice');
+                    bp.textContent = '$' + price.toFixed(2); bp.style.color = '#28a745';
+                } else {
+                    plBtSellPrice = price; plBtSellDateVal = dateStr;
+                    document.getElementById('plBtSellDate').value = dateStr;
+                    var sp = document.getElementById('plBtSellPrice');
+                    sp.textContent = '$' + price.toFixed(2); sp.style.color = '#dc3545';
+                }
+            });
+        });
+    }
+    document.addEventListener('DOMContentLoaded', plSetupClickToPick);
+
+    /* ═══ Calculate ═══ */
+    function calculateProfitLoss() {
+        var buyPrice, sellPrice, shares, buyComm, sellComm;
+
+        if (plCurrentMode === 'backtest') {
+            buyPrice  = plBtBuyPrice;
+            sellPrice = plBtSellPrice;
+            shares    = parseFloat(document.getElementById('plBtShares').value);
+            buyComm   = parseFloat(document.getElementById('plBtBuyComm').value) || 0;
+            sellComm  = parseFloat(document.getElementById('plBtSellComm').value) || 0;
+        } else {
+            buyPrice  = parseFloat(document.getElementById('plBuyPrice').value);
+            sellPrice = parseFloat(document.getElementById('plSellPrice').value);
+            shares    = parseFloat(document.getElementById('plShares').value);
+            buyComm   = parseFloat(document.getElementById('plBuyCommission').value) || 0;
+            sellComm  = parseFloat(document.getElementById('plSellCommission').value) || 0;
+        }
+
+        if (buyPrice === null || sellPrice === null || isNaN(buyPrice) || isNaN(sellPrice) || isNaN(shares)) {
+            alert('⚠️ Please provide Buy Price, Sell Price, and Number of Shares.');
+            return;
+        }
+        if (buyPrice < 0 || sellPrice < 0 || shares < 1) {
+            alert('⚠️ Prices must be ≥ 0 and Shares ≥ 1.');
+            return;
+        }
+
+        var totalCost    = (buyPrice * shares) + buyComm;
+        var totalRev     = (sellPrice * shares) - sellComm;
+        var totalComm    = buyComm + sellComm;
+        var net          = totalRev - totalCost;
+        var roi          = totalCost > 0 ? (net / totalCost) * 100 : 0;
+        var breakEven    = shares > 0 ? (totalCost + sellComm) / shares : 0;
+
+        function fmt(n) { return '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+
+        document.getElementById('plTotalCost').textContent        = fmt(totalCost);
+        document.getElementById('plTotalRevenue').textContent     = fmt(totalRev);
+        document.getElementById('plTotalCommissions').textContent = fmt(totalComm);
+        document.getElementById('plBreakEven').textContent        = fmt(breakEven);
+
+        var netEl = document.getElementById('plNetResult');
+        var roiEl = document.getElementById('plROI');
+        netEl.textContent = (net >= 0 ? '+' : '') + fmt(net);
+        roiEl.textContent = roi.toFixed(2) + '%';
+        netEl.style.color = net > 0 ? '#28a745' : net < 0 ? '#dc3545' : '#343a40';
+        roiEl.style.color = netEl.style.color;
+
+        // Show backtest meta info
+        var meta = document.getElementById('plResultsMeta');
+        if (plCurrentMode === 'backtest' && plBtBuyDateVal && plBtSellDateVal) {
+            var toolSel = document.getElementById('plToolSelect');
+            var toolLabel = toolSel.selectedIndex > 0 ? toolSel.options[toolSel.selectedIndex].text : '';
+            meta.innerHTML = '<strong>' + toolLabel + '</strong> — Buy ' + plBtBuyDateVal + ' → Sell ' + plBtSellDateVal;
+            meta.style.display = '';
+        } else {
+            meta.style.display = 'none';
+        }
+
+        document.getElementById('plResults').style.display = 'block';
+    }
+
+    function resetProfitLoss() {
+        // Manual fields
+        ['plBuyPrice','plSellPrice','plShares'].forEach(function(id) { document.getElementById(id).value = ''; });
+        document.getElementById('plBuyCommission').value  = '0';
+        document.getElementById('plSellCommission').value = '0';
+        // Backtest fields
+        plClearSignal('buy'); plClearSignal('sell');
+        document.getElementById('plBtShares').value   = '';
+        document.getElementById('plBtBuyComm').value  = '0';
+        document.getElementById('plBtSellComm').value = '0';
+        document.getElementById('plResults').style.display = 'none';
+    }
+    </script>
+
     <script src="main.js?v=3.2"></script>
     <script src="fetch-gcf.js?v=3.2"></script>
 

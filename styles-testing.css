@@ -1164,3 +1164,356 @@ th {
     font-size: 14px;
     font-weight: 500;
 }
+
+/* ═══ Profit & Loss Calculator ═══ */
+.pl-calculator {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 0 10px;
+}
+
+.pl-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 18px;
+}
+
+.pl-field {
+    display: flex;
+    flex-direction: column;
+}
+
+.pl-field label {
+    font-weight: bold;
+    margin-bottom: 5px;
+    font-size: 14px;
+    color: #343a40;
+}
+
+.pl-field input {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.pl-field input:focus {
+    outline: none;
+    border-color: #6f42c1;
+    box-shadow: 0 0 0 2px rgba(111, 66, 193, 0.2);
+}
+
+.pl-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.pl-buttons button {
+    padding: 10px 30px;
+    border: none;
+    border-radius: 4px;
+    color: #fff;
+    font-size: 15px;
+    cursor: pointer;
+    min-width: 120px;
+}
+
+#plCalculateBtn {
+    background-color: #6f42c1;
+}
+#plCalculateBtn:hover {
+    background-color: #ffc107;
+}
+#plResetBtn:hover {
+    background-color: #5a6268 !important;
+}
+
+.pl-results {
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.pl-results h3 {
+    color: #6f42c1;
+    margin-top: 0;
+}
+
+.pl-results-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.pl-results-table td {
+    padding: 10px 12px;
+    border: none;
+    border-bottom: 1px solid #eee;
+}
+
+.pl-results-table tr:last-child td {
+    border-bottom: none;
+}
+
+.pl-label {
+    color: #6c757d;
+    font-size: 14px;
+    width: 55%;
+}
+
+.pl-value {
+    text-align: right;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 15px;
+    color: #343a40;
+}
+
+.pl-highlight-row {
+    background-color: #f8f9fa;
+}
+
+/* P&L Calculator — responsive */
+@media (max-width: 480px) {
+    .pl-inputs {
+        grid-template-columns: 1fr;
+    }
+    .pl-buttons {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .pl-buttons button {
+        width: 100%;
+    }
+    .pl-bt-pick-row {
+        flex-direction: column;
+    }
+}
+
+/* ── Mode Tabs ── */
+.pl-mode-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 18px;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.pl-mode-tab {
+    flex: 1;
+    padding: 10px 16px;
+    border: none;
+    background: #f0f0f0;
+    color: #6c757d;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+}
+
+.pl-mode-tab.active {
+    background: #fff;
+    color: #6f42c1;
+    border-bottom-color: #6f42c1;
+}
+
+.pl-mode-tab:hover:not(.active) {
+    background: #e9ecef;
+}
+
+/* ── Backtest Steps ── */
+.pl-bt-step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+    padding: 10px 14px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border-left: 4px solid #6f42c1;
+}
+
+.pl-bt-step-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #6f42c1;
+    color: #fff;
+    font-size: 13px;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.pl-bt-step label {
+    font-weight: bold;
+    font-size: 14px;
+    color: #343a40;
+    flex-shrink: 0;
+}
+
+.pl-bt-step select {
+    flex: 1;
+    min-width: 180px;
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    background: #fff;
+}
+
+.pl-bt-step select:focus {
+    outline: none;
+    border-color: #6f42c1;
+    box-shadow: 0 0 0 2px rgba(111, 66, 193, 0.2);
+}
+
+/* ── Pick Row (date + price + clear) ── */
+.pl-bt-pick-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+}
+
+.pl-bt-pick-row input[type="text"] {
+    flex: 1;
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 13px;
+    background: #fff;
+    color: #555;
+    min-width: 140px;
+}
+
+.pl-bt-pick-row input:focus {
+    outline: none;
+    border-color: #6f42c1;
+    box-shadow: 0 0 0 2px rgba(111, 66, 193, 0.2);
+}
+
+.pl-bt-price {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+    font-weight: bold;
+    color: #6c757d;
+    white-space: nowrap;
+    min-width: 80px;
+    text-align: right;
+}
+
+.pl-bt-clear {
+    background: none;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    color: #999;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 4px 8px;
+    line-height: 1;
+}
+
+.pl-bt-clear:hover {
+    color: #dc3545;
+    border-color: #dc3545;
+}
+
+/* ── Dynamic nav button injected into tool sections ── */
+.pl-nav-to-calc {
+    display: block;
+    width: 100%;
+    margin-top: 8px;
+    padding: 8px 0;
+    background: #6f42c1;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    text-align: center;
+}
+
+.pl-nav-to-calc:hover {
+    background: #ffc107;
+}
+
+/* ── Hover price badge on signal table rows ── */
+.pl-hover-price {
+    position: absolute;
+    right: -4px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #343a40;
+    color: #fff;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 20;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+/* ── Results meta line ── */
+.pl-results-meta {
+    text-align: center;
+    font-size: 13px;
+    color: #6c757d;
+    margin-bottom: 12px;
+    padding: 6px 10px;
+    background: #f8f9fa;
+    border-radius: 4px;
+}
+
+/* ── Info icon + tooltip ── */
+.pl-info-icon {
+    position: relative;
+    cursor: help;
+    font-size: 14px;
+    margin-left: 4px;
+}
+
+.pl-info-tooltip {
+    display: none;
+    position: absolute;
+    bottom: 130%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 260px;
+    background: #343a40;
+    color: #fff;
+    font-size: 12px;
+    font-weight: normal;
+    line-height: 1.5;
+    padding: 10px 12px;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    z-index: 100;
+    text-align: left;
+}
+
+.pl-info-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: #343a40;
+}
+
+.pl-info-icon:hover .pl-info-tooltip,
+.pl-info-icon:focus .pl-info-tooltip {
+    display: block;
+}
