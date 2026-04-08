@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://www.google-analytics.com; connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://us-central1-gen-lang-client-0071896365.cloudfunctions.net; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://clarity.microsoft.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://www.google-analytics.com https://clarity.microsoft.com; connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://us-central1-gen-lang-client-0071896365.cloudfunctions.net https://clarity.microsoft.com; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests;">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
     
@@ -212,10 +212,24 @@
         document.head.appendChild(script);
         console.log('📋 Script element added to DOM');
         
+        // Load Microsoft Clarity with consent
+        if (MS_CLARITY_PROJECT_ID !== 'YOUR_PROJECT_ID_HERE') {
+          console.log('📥 Loading Microsoft Clarity...');
+          (function(c,l,a,r,i,t,y){
+            c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+            t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+            y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+          })(window, document, "clarity", "script", MS_CLARITY_PROJECT_ID);
+          console.log('✅ Microsoft Clarity initialized');
+        } else {
+          console.warn('⚠️ MS Clarity Project ID not configured');
+        }
+        
         // AGGRESSIVE continuous cleanup every 500ms to catch GA cookie creation
         setInterval(clearAllForeignCookies, 500);
       } else {
         console.log('ℹ️ Analytics consent not granted - GA not loaded');
+        console.log('ℹ️ Analytics consent not granted - MS Clarity not loaded');
       }
     })();
   </script>
@@ -1135,7 +1149,7 @@
             Calculate your potential stock trade profit or loss — or backtest a signal.
         </p>
 
-        <div class="pl-calculator">
+        <div class="pl-calculator" data-clarity-mask>
 
             <!-- Mode tabs -->
             <div class="pl-mode-tabs">
@@ -1668,6 +1682,7 @@
       
       const CONSENT_KEY = 'trading-analytics-consent';
       const GA_MEASUREMENT_ID = 'G-YQYWNB1WK2';
+      const MS_CLARITY_PROJECT_ID = 'w8cp9g98le'; // Live MS Clarity Project ID for GitHub page
       
       // Cookie clearing utility
       function clearAnalyticsCookies() {
@@ -1736,13 +1751,16 @@
         const consent = localStorage.getItem(CONSENT_KEY);
         alert('Privacy Information:\n\n' +
               '• We use Google Analytics to understand how the trading analysis tool is used\n' +
+              '• We use Microsoft Clarity to understand user interactions and improve UX\n' +
+              '• Clarity provides session insights and heatmaps (privacy-first)\n' +
               '• All data is anonymized and aggregated\n' +
               '• No personal information is collected or stored\n' +
               '• You can enable/disable analytics anytime\n' +
               '• The tool works fully without analytics\n' +
               '• This tool uses isolated tracking (trading-analytics-consent)\n\n' +
               'Current status: ' + (consent || 'Not set') + '\n\n' +
-              'Measurement ID: ' + GA_MEASUREMENT_ID);
+              'Google Analytics ID: ' + GA_MEASUREMENT_ID + '\n' +
+              'Microsoft Clarity: Connected');
       };
       
       window.resetPrivacySettings = function() {
@@ -2061,7 +2079,7 @@
   <div id="privacyBanner" class="privacy-banner">
     <div class="privacy-banner-content">
       <div class="privacy-banner-text">
-        🍪 <strong>Privacy Notice:</strong> This trading analysis tool uses analytics to improve your experience. We anonymize all data and don't track personal information.
+        🍪 <strong>Privacy Notice:</strong> This trading analysis tool uses Google Analytics and Microsoft Clarity to improve your experience. We anonymize all data and don't track personal information.
       </div>
       <div class="privacy-banner-buttons">
         <button class="privacy-btn privacy-btn-accept" onclick="acceptAnalytics()">
