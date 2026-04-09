@@ -99,6 +99,7 @@
       // Use repo-specific localStorage key to prevent conflicts
       const CONSENT_KEY = 'trading-analytics-consent';
       const GA_MEASUREMENT_ID = 'G-YQYWNB1WK2';
+      const MS_CLARITY_PROJECT_ID = 'w8cp9g98le'; // Live MS Clarity Project ID for GitHub page
       
       // Cookie cleanup - remove foreign/unprefixed GA cookies
       function clearAllForeignCookies() {
@@ -136,8 +137,9 @@
         console.log('  Full URL:', location.href);
         console.log('  Consent:', analyticsConsent);
         
-        const cookieDomain = location.hostname.includes('percentagesenvy') ? 'percentagesenvy.com' : 'cracked-crystalball-99.github.io';
-        console.log('  Cookie Domain:', cookieDomain);
+        const cookieDomain = location.hostname === 'localhost' ? '' : 
+                             (location.hostname.includes('percentagesenvy') ? 'percentagesenvy.com' : 'cracked-crystalball-99.github.io');
+        console.log('  Cookie Domain:', cookieDomain || '(empty for localhost)');
         
         // User has consented - load GA with privacy settings
         gtag('js', new Date());
